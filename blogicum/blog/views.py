@@ -1,24 +1,27 @@
 from django.shortcuts import render, get_object_or_404
+
 import datetime
 
 from .models import Post, Category
 
+POST_LIMIT = 5
+
+
+def get_published_posts():
+    return Post.objects.select_related(
+        'author', 'location', 'category'
+    ).filter(pub_date__lte=datetime.datetime.now(), is_published=True)
+
 
 def index(request):
-    posts = Post.objects.select_related(
-        'author', 'location'
-    ).filter(pub_date__lte=datetime.datetime.now(),
-             is_published=True,
-             category__is_published=True
-             ).order_by('-pub_date')[0:5]
+    posts = get_published_posts().filter(category__is_published=True
+                                         ).order_by('-pub_date')[:POST_LIMIT]
     return render(request, 'blog/index.html', {'post_list': posts})
 
 
 def post_detail(request, id):
     post = get_object_or_404(
-        Post.objects.filter(
-            is_published=True,
-            pub_date__lte=datetime.datetime.now(),
+        get_published_posts().filter(
             category__is_published=True,
             pk=id
         )
