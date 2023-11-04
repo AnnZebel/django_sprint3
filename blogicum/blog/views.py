@@ -34,11 +34,8 @@ def category_posts(request, category_slug):
         Category,
         slug=category_slug,
         is_published=True)
-    posts = category.posts.all().select_related(
-        'location',
-        'author').filter(
-        is_published=True,
-        pub_date__lte=datetime.datetime.now()
+    posts = get_published_posts().filter(
+        category=category
     )
     return render(request, 'blog/category.html',
                   {'category': category, 'post_list': posts})
